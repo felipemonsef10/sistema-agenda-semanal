@@ -1,0 +1,17 @@
+# Ambiente virtual local do uv (criado automaticamente na raiz)
+.venv/
+
+# Caches e arquivos temporários do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribuição e builds
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Variáveis de ambiente (opcional, mas recomendado)
+.env
+.env.*

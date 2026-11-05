@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container text-center">
+        <h1 class="mb-4">Agendas Semanais</h1>
+    </div>
+
+
+    
+    <div class="container">
+        <hr>
+        <form action="" method="post">
+            {{ form.csrf_token() }}
+            
+            <div class="text-center">
+                {% for data, dia_semana in dias_semana.items() %}
+                    <div class="row mb-5">
+                        <div class="col-2">
+                            <div class="row mt-3">
+                                <div class="col">
+                                    Data
+                                </div>
+                                <div class="col">
+                                    Dia Semana
+                                </div>
+
+                            </div>
+                            <div class="row mt-5">
+                                <div class="col">
+                                    <br>
+                                    <br>
+                                    {{ data }}
+                                </div>
+                                <div class="col">
+                                    <br>
+                                    <br>
+                                    {{ dia_semana }}
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="col-5">
+
+                            <div class="row">
+                                <div class="col">
+                                    Manhã
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.cidade_manha.label}}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.cidade_manha(class="form-control mb-3")}}
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_1_manha.label }}
+                                    {{ form.atividade_1_manha }}
+                                </div>
+                            </div>            
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_2_manha.label }}
+                                    {{ form.atividade_2_manha }}
+                                </div>
+                            </div>            
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_3_manha.label }}
+                                    {{ form.atividade_3_manha }}
+                                </div>
+                            </div>            
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_4_manha.label }}
+                                    {{ form.atividade_4_manha }}
+                                </div>
+                            </div>            
+                        </div>
+        
+                        <div class="col-5">
+                            <div class="row">
+                                <div class="col">
+                                    Tarde
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.cidade_tarde.label}}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.cidade_tarde(class="form-control mb-3")}}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_1_tarde.label }}
+                                    {{ form.atividade_1_tarde }}
+                                </div>
+                            </div>            
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_2_tarde.label }}
+                                    {{ form.atividade_2_tarde }}
+                                </div>
+                            </div>            
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_3_tarde.label }}
+                                    {{ form.atividade_3_tarde }}
+                                </div>
+                            </div>            
+                            <div class="row">
+                                <div class="col">
+                                    {{ form.atividade_4_tarde.label }}
+                                    {{ form.atividade_4_tarde }}
+                                </div>
+                            </div>            
+                        </div>
+                    </div>
+                    <hr>
+                {% endfor %}
+            </div>    
+
+            {{ form.btn_submit.label }}
+            {{ form.btn_submit(class='mb-3') }}
+        </form>
+    </div>
+
+</body>
+</html>
