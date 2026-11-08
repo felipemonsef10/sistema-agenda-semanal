@@ -1,22 +1,47 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, DateField, EmailField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
+from wtforms import FieldList, Form, FormField, StringField, PasswordField, SubmitField, FileField, DateField, EmailField, SelectField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Optional
+
+
+class LinhaItemForm(Form):
+    atividade = SelectField(
+        'Atividades',
+        choices=[
+            ('', 'Selecione...'),
+            ('Visita', 'Visita'),
+            ('Rota', 'Rota'),
+            ('Acompanhamento', 'Acompanhamento'),
+            ('Outros', 'Outros'),
+        ],
+        validators=[Optional()],
+    )
+    descricao = StringField('Descrição', validators=[Optional()])
 
 
 class FormAgenda(FlaskForm):
-    cidade_manha = StringField('Cidade', validators=[DataRequired()])
-    cidade_tarde = StringField('Cidade', validators=[DataRequired()])
+    cidade_manha = FieldList(
+        StringField('Cidade', validators=[DataRequired()]),
+        min_entries=5,
+        max_entries=5
+    )
     
-    atividade_1_manha = StringField('Atividade', validators=[DataRequired()])
-    atividade_2_manha = StringField('Atividade', validators=[DataRequired()])
-    atividade_3_manha = StringField('Atividade', validators=[DataRequired()])
-    atividade_4_manha = StringField('Atividade', validators=[DataRequired()])
-
-    atividade_1_tarde = StringField('Atividade', validators=[DataRequired()])
-    atividade_2_tarde = StringField('Atividade', validators=[DataRequired()])
-    atividade_3_tarde = StringField('Atividade', validators=[DataRequired()])
-    atividade_4_tarde = StringField('Atividade', validators=[DataRequired()])
+    cidade_tarde = FieldList(
+        StringField('Cidade', validators=[DataRequired()]),
+        min_entries=5,
+        max_entries=5
+    )
     
-    # descricao = StringField('Descrição', validators=[DataRequired()])
     
-    btn_submit = SubmitField('Enviar')
+    atividade_manha = FieldList(
+        FormField(LinhaItemForm),
+        min_entries=20,
+        max_entries=20,
+    )
+    
+    atividade_tarde = FieldList(
+        FormField(LinhaItemForm),
+        min_entries=20,
+        max_entries=20,
+    )
+  
+    submit = SubmitField('Salvar')
