@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container d-flex justify-content-center">
+    <form class="card m-3" action="" method="post">
+        {{ form.csrf_token() }}
+
+        <h4 class="card-title text-center mt-3">Login</h4>
+        
+        <div class="card-body">
+            <div class="form-field m-3">
+                {{ form.email.label(class="form-label") }}
+    
+                {% if form.email.errors %}
+                    {{ form.email(class="form-control is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for erro in form.email.errors %}
+                            {{ erro }}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.email(class="form-control") }}
+                {% endif %}
+            </div>
+    
+            <div class="m-3">
+                {{ form.senha.label(class="form-label") }}
+                {{ form.senha(class="form-control") }}
+            </div>
+    
+            {{ form.btn_submit(class="btn-solid theme-primary m-3 position-relative") }}
+        </div>
+    </form>
+</div>
+
+
+
+{% endblock %}

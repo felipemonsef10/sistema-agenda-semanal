@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <form action="" method="post">
+        {{ form.csrf_token() }}
+
+        <legend>Cadastro</legend>
+
+        <div class="mb-3">
+            {{ form.nome_completo.label(class="form-label") }}
+
+            {% if form.nome_completo.errors %}
+                {{ form.nome_completo(class="form-control is-invalid") }}
+
+                <div class="invalid-feedback">
+                    {% for erro in form.nome_completo.errors %}
+                        {{ erro }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.nome_completo(class="form-control") }}
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            
+            {% if form.email.errors %}
+                {{ form.email(class="form-control is-invalid") }}
+
+                <div class="invalid-feedback">
+                    {% for erro in form.email.errors %}
+                        {{ erro }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.email(class="form-control") }}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.senha.label(class="form-label") }}
+            {{ form.senha(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.funcao.label(class="form-label") }}
+            {{ form.funcao(class="form-control") }}
+        </div>
+
+        <div class="mb-3 form-field">
+            {{ form.is_admin.label(class="form-label")   }}
+
+            {% if form.is_admin.errors %}
+                {{ form.is_admin }}
+                <div class="invalid-feedback">
+                    {% for erro in form.is_admin.errors %}
+                        {{ erro }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.is_admin(class="check") }}
+            {% endif %}
+        </div>
+
+        {{ form.btn_submit(class="btn-solid theme-primary") }}
+
+    </form>
+
+</div>
+
+{% endblock %}

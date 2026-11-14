@@ -1,81 +1,90 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
-</head>
-<body>
-    <div class="container text-center">
-        <h1 class="mb-4">Agendas Semanais</h1>
-        <hr>
-    </div>
+{% extends 'base.html' %}
 
-    <div class="container">
-        <form action="" method="post">
-            {{ form.csrf_token() }}
-            
-            {% set ns = namespace(contador=0) %}
-            {% for data, dia_semana in dias_semana.items() %}
-            
-                <div class="row container text-center align-items-center">
 
-                    <div class="col-2">
-                        <p class="mt-5">Data</p>
-                        <p class="mt-5">
-                            {{ data }}
-                        </p>
-                    </div>
-                    
-                    <!-- Manhã -->
-                    <div class="col-5">
-                        <h2>Cidade (Manhã)</h2>
-                        {{ form.cidade_manha[loop.index - 1](class='form-control') }}
-                        <hr style="color: purple;">
+{% block body %}
+<div class="container text-center" style="background-color: burlywood;">
+    <h1 class="mb-4">Agendas Semanais</h1>
+    <h2 class="mb-4">{{ intervalo.replace('_', ' ') }}</h2>
+    <hr>
+</div>
 
-                        {% for c in range(ns.contador, ns.contador + 4) %}
-                            <div class="row m-1">
-                                <div class="col-4">
-                                    {{ form.atividade_manha[c].atividade(class='form-control') }}
-                                </div>
+<div class="container">
+    <form action="" method="post">
+        {{ form.csrf_token() }}
+        
+        {% set ns = namespace(contador=0) %}
+        {% for dia_semana, data in dias_semana.items() %}
+        
+            <div class="row container text-center align-items-center" style="background-color: cornflowerblue;">
 
-                                <div class="col-8">
-                                    {{ form.atividade_manha[c].descricao(class='form-control') }}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <!-- Manhã -->
-                    
-                    <!-- Tarde -->
-                    <div class="col-5">
-                        <h2>Cidade (Tarde)</h2>
-                        {{ form.cidade_tarde[loop.index - 1](class='form-control') }}
-                        <hr style="color: purple;">
-
-                        {% for c in range(ns.contador, ns.contador + 4) %}
-                            <div class="row m-1">
-                                <div class="col-4">
-                                    {{ form.atividade_tarde[c].atividade(class='form-control') }}
-                                </div>
-                                
-                                <div class="col-8">
-                                    {{ form.atividade_tarde[c].descricao(class='form-control') }}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <!-- Tarde -->
-
+                <div class="col-2" style="background-color: red;">
+                    <p class="mt-5 font-monospace">Data</p>
+                    <p class="mt-5 font-monospace">
+                        {{ dia_semana }} <br>
+                        {{ data.strftime('%d/%m/%Y') }}
+                    </p>
                 </div>
-                <hr>
-                {% set ns.contador = loop.index * 4 %}
-            {% endfor %}
+                
+                <!-- Manhã -->
+                <div class="col-5" style="background-color: aqua;">
+                    <h3>Cidade (Manhã)</h3>
+                    {{ form.cidade_manha[loop.index - 1](class='form-control') }}
+                    <hr style="color: purple;">
 
-            {{ form.submit(class='theme-primary btn-solid btn-styled mb-3') }}
+                    {% for c in range(ns.contador, ns.contador + 4) %}
+                        <div class="row m-1">
+                            <div class="col-4">
+                                {% if loop.index == 1 %}
+                                    <h5>Atividade</h5>
+                                {% endif %}
+                                {{ form.atividade_manha[c].atividade(class='form-control') }}
+                            </div>
 
-        </form>
-    </div>
-</body>
-</html>
+                            <div class="col-8">
+                                {% if loop.index == 1 %}
+                                    <h5>Descrição</h5>
+                                {% endif %}
+                                {{ form.atividade_manha[c].descricao(class='form-control') }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Manhã -->
+                
+                <!-- Tarde -->
+                <div class="col-5" style="background-color: lightblue;">
+                    <h3>Cidade (Tarde)</h3>
+                    {{ form.cidade_tarde[loop.index - 1](class='form-control') }}
+                    <hr style="color: purple;">
+
+                    {% for c in range(ns.contador, ns.contador + 4) %}
+                        <div class="row m-1">
+                            <div class="col-4">
+                                {% if loop.index == 1 %}
+                                    <h5>Atividade</h5>
+                                {% endif %}
+                                {{ form.atividade_tarde[c].atividade(class='form-control') }}
+                            </div>
+                            
+                            <div class="col-8">
+                                {% if loop.index == 1 %}
+                                    <h5>Descrição</h5>
+                                {% endif %}
+                                {{ form.atividade_tarde[c].descricao(class='form-control') }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Tarde -->
+
+            </div>
+
+            <hr>
+            {% set ns.contador = loop.index * 4 %}
+        {% endfor %}
+
+        {{ form.submit(class='theme-primary btn-solid btn-styled mb-3') }}
+
+    </form>
+</div>
+{% endblock %}

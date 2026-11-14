@@ -15,3 +15,6 @@ wheels/
 # Variáveis de ambiente (opcional, mas recomendado)
 .env
 .env.*
+
+db_manager.py
+projetoagenda/static/agendas_semanais/
