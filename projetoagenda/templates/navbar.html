@@ -4,13 +4,13 @@
             {% if current_user.is_admin %}
                 <ul class="nav">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ url_for('home') }}">Agendas</a>
+                        <a class="nav-link {% if request.endpoint == 'tela_admin' %}active{% endif %}" href="{{ url_for('home') }}">Agendas</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{{ url_for('cadastro_usuario') }}">Cadastrar User</a>
+                        <a class="nav-link {% if request.endpoint == 'usuarios' %}active{% endif %}" href="{{ url_for('usuarios') }}">Usuários</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Link</a>
+                        <a class="nav-link {% if request.endpoint == 'regioes' %}active{% endif %}" href="{{ url_for('regioes') }}">Regiões</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link disabled" aria-disabled="true">Disabled</a>

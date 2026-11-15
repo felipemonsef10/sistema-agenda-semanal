@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="mb-3">
+        <form action="" method="post">
+            {{ form_cadastro.csrf_token() }}
+    
+            <legend>Cadastro de Região</legend>
+    
+            <div class="mb-3">
+                {{ form_cadastro.regiao.label(class="form-label") }}
+    
+                {% if form_cadastro.regiao.errors %}
+                    {{ form_cadastro.regiao(class="form-control is-invalid") }}
+        
+                    <div class="invalid-feedback">
+                        {% for erro in form_cadastro.regiao.errors %}
+                            {{ erro }}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_cadastro.regiao(class="form-control") }}
+                {% endif %}
+            </div>
+    
+            <div class="mb-3">
+                {{ form_cadastro.area.label(class="form-label") }}
+    
+                {% if form_cadastro.area.errors %}
+                    {{ form_cadastro.area(class="form-control is-invalid") }}
+        
+                    <div class="invalid-feedback">
+                        {% for erro in form_cadastro.area.errors %}
+                            {{ erro }}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_cadastro.area(class="form-control") }}
+                {% endif %}
+            </div>
+    
+            {{ form_cadastro.submit(class="btn-solid theme-primary") }}
+    
+        </form>
+    </div>
+
+
+<!-- Form invisível que controla a edição da linha (evita <form> dentro de <tr>) -->
+    {% if form_edicao %}
+        <form id="form-edicao" method="POST" action="{{ url_for('editar_regiao', id=editar_id) }}">
+            {{ form_edicao.hidden_tag() }}
+        </form>
+    {% endif %}
+
+
+<!-- 2. TABELA DE LISTAGEM E EDIÇÃO -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Região</th>
+                <th>Área</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for regiao in regioes %}
+                <tr>                
+                    {% if editar_id == regiao.id %}
+                        <!-- MODO EDIÇÃO: Inputs vinculados ao form-edicao -->
+                        <td>{{ form_edicao.regiao(form="form-edicao", class="form-control") }}</td>
+                        <td>{{ form_edicao.area(form="form-edicao", class="form-control") }}</td>
+                        <td>
+                            {{ form_edicao.submit(form="form-edicao", value="Salvar", class="btn-solid theme-primary") }}
+                            <a href="{{ url_for('regioes') }}" class="btn-solid theme-primary">Cancelar</a>
+                        </td>
+                    {% else %}
+                        <!-- MODO VISUALIZAÇÃO -->
+                        <td>
+                            <input type="text" class="form-control" value="{{ regiao.regiao }}" disabled>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" value="{{ regiao.area }}" disabled>
+                        </td>
+                        <td>
+                            <div class="row">
+                                <div class="col-2">
+                                    <a href="{{ url_for('regioes', editar_id=regiao.id) }}" class="btn-solid theme-primary">Editar</a>
+                                </div>
+                                <div class="col-10">
+                                    <!-- Botão Excluir (Usa <form> porque a rota exige POST) -->
+                                    <form action="{{ url_for('excluir_regiao', id=regiao.id) }}" method="POST" style="margin: 0;">
+                                        <button type="submit" class="btn-solid theme-danger" onclick="return confirm('Tem certeza que deseja excluir esta região?')">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table
+
+{% endblock %}

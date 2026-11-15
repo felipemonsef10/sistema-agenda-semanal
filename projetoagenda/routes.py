@@ -1,6 +1,6 @@
 from projetoagenda import app, db, bcrypt
-from projetoagenda.forms import FormAgenda, FormCadastroUsuario, FormLoginUsuario
-from projetoagenda.models import Agenda, Usuario
+from projetoagenda.forms import FormAgenda, FormCadastroUsuario, FormLoginUsuario, RegiaoForm
+from projetoagenda.models import Agenda, Usuario, Regiao
 from projetoagenda.utils import calcular_dias_semana, gerar_agenda_pdf
 from projetoagenda.caminhos import CAMINHO_PDFS
 
@@ -77,20 +77,20 @@ def buscar_agenda(id_usuario: int, intervalo_semana: str):
         return {}
 
 
-def cadastrar_agenda(dias_semana: dict, form_agenda: FormAgenda, intervalo_semana: str, id_usuario: int):
+def cadastrar_agenda(dias_semana: dict, form: FormAgenda, intervalo_semana: str, id_usuario: int):
     count = 0
     
     for idx, data in enumerate(dias_semana.values()):
-        cidade_manha = form_agenda.cidade_manha.data[idx]
-        cidade_tarde = form_agenda.cidade_tarde.data[idx]
+        cidade_manha = form.cidade_manha.data[idx]
+        cidade_tarde = form.cidade_tarde.data[idx]
         
-        lista_atividades_manha = form_agenda.atividade_manha.data[count:count + 4]
-        lista_atividades_tarde = form_agenda.atividade_tarde.data[count:count + 4]
+        lista_atividades_manha = form.atividade_manha.data[count:count + 4]
+        lista_atividades_tarde = form.atividade_tarde.data[count:count + 4]
         
-        atividade_manha = ';'.join([atividade['atividade'].strip() for atividade in lista_atividades_manha])
-        atividade_tarde = ';'.join([descricao['atividade'].strip() for descricao in lista_atividades_tarde])
-        descricao_manha = ';'.join([atividade['descricao'].strip() for atividade in lista_atividades_manha])
-        descricao_tarde = ';'.join([descricao['descricao'].strip() for descricao in lista_atividades_tarde])
+        atividade_manha = ';'.join([atividade['atividade'] for atividade in lista_atividades_manha])
+        atividade_tarde = ';'.join([descricao['atividade'] for descricao in lista_atividades_tarde])
+        descricao_manha = ';'.join([atividade['descricao'] for atividade in lista_atividades_manha])
+        descricao_tarde = ';'.join([descricao['descricao'] for descricao in lista_atividades_tarde])
         
         registro_dia = {
             'data': data,
@@ -114,20 +114,20 @@ def cadastrar_agenda(dias_semana: dict, form_agenda: FormAgenda, intervalo_seman
         count += 4
         
         
-def atualizar_agenda(dias_semana: dict, form_agenda: FormAgenda, agenda_atual):
+def atualizar_agenda(dias_semana: dict, form: FormAgenda, agenda_atual):
     count = 0
     
     for idx, data in enumerate(dias_semana.values()):
-        cidade_manha = form_agenda.cidade_manha.data[idx]
-        cidade_tarde = form_agenda.cidade_tarde.data[idx]
+        cidade_manha = form.cidade_manha.data[idx]
+        cidade_tarde = form.cidade_tarde.data[idx]
         
-        lista_atividades_manha = form_agenda.atividade_manha.data[count:count + 4]
-        lista_atividades_tarde = form_agenda.atividade_tarde.data[count:count + 4]
+        lista_atividades_manha = form.atividade_manha.data[count:count + 4]
+        lista_atividades_tarde = form.atividade_tarde.data[count:count + 4]
         
-        atividade_manha = ';'.join([atividade['atividade'].strip() for atividade in lista_atividades_manha])
-        atividade_tarde = ';'.join([descricao['atividade'].strip() for descricao in lista_atividades_tarde])
-        descricao_manha = ';'.join([atividade['descricao'].strip() for atividade in lista_atividades_manha])
-        descricao_tarde = ';'.join([descricao['descricao'].strip() for descricao in lista_atividades_tarde])
+        atividade_manha = ';'.join([atividade['atividade'] for atividade in lista_atividades_manha])
+        atividade_tarde = ';'.join([descricao['atividade'] for descricao in lista_atividades_tarde])
+        descricao_manha = ';'.join([atividade['descricao'] for atividade in lista_atividades_manha])
+        descricao_tarde = ';'.join([descricao['descricao'] for descricao in lista_atividades_tarde])
         
         registro_dia = {
             'data': data,
@@ -153,17 +153,28 @@ def atualizar_agenda(dias_semana: dict, form_agenda: FormAgenda, agenda_atual):
         count += 4
         
 
-def cadastrar_usuario(form_cadastro_usuario: FormCadastroUsuario):
+def cadastrar_usuario(form: FormCadastroUsuario):
     usuario = Usuario(
-        nome_completo = form_cadastro_usuario.nome_completo.data,
-        email = form_cadastro_usuario.email.data,
-        senha = bcrypt.generate_password_hash(form_cadastro_usuario.senha.data).decode('utf-8'),
-        funcao = form_cadastro_usuario.funcao.data,
-        is_admin = form_cadastro_usuario.is_admin.data,
+        nome_completo = form.nome_completo.data,
+        email = form.email.data,
+        senha = bcrypt.generate_password_hash(form.senha.data).decode('utf-8'),
+        funcao = form.funcao.data,
+        is_admin = form.is_admin.data,
     )
     
     with app.app_context():
         db.session.add(usuario)
+        db.session.commit()
+
+
+def cadastrar_regiao(form: RegiaoForm):
+    regiao = Regiao(
+        regiao = form.regiao.data,
+        area = form.area.data
+    )
+    
+    with app.app_context():
+        db.session.add(regiao)
         db.session.commit()
 
 
@@ -175,19 +186,19 @@ def home():
     
     dados_iniciais_agenda, agenda_atual = carregar_dados_agenda(current_user.id, intervalo_semana)
     
-    form_agenda = FormAgenda(data=dados_iniciais_agenda)
+    form = FormAgenda(data=dados_iniciais_agenda)
     
-    if form_agenda.validate_on_submit():
+    if form.validate_on_submit():
         if not agenda_atual:
-            cadastrar_agenda(dias_semana, form_agenda, intervalo_semana, current_user.id)
+            cadastrar_agenda(dias_semana, form, intervalo_semana, current_user.id)
             flash('Agenda enviada com sucesso!', category='theme-success')
         else:
-            atualizar_agenda(dias_semana, form_agenda, agenda_atual)
+            atualizar_agenda(dias_semana, form, agenda_atual)
             flash('Agenda atualizada com sucesso!', category='theme-info')
             
         return redirect(url_for('home'))
 
-    return render_template('home_agenda.html', form=form_agenda, dias_semana=dias_semana, intervalo=intervalo_semana)
+    return render_template('home_agenda.html', form=form, dias_semana=dias_semana, intervalo=intervalo_semana)
 
 
 @app.route('/supervisor/agenda/baixar', methods=['GET', 'POST'])
@@ -206,33 +217,101 @@ def baixar_agenda():
         flash('Agenda baixada com sucesso!', 'theme-success')
         return send_file(caminho_agenda_pdf, as_attachment=True, download_name=nome_arquivo_pdf)
     
-    flash('Agenda não encontrada!', 'theme-info')
+    flash('Agenda não preenchida!', 'theme-info')
     return '', 204
 
 
 @app.route('/adm', methods=['GET', 'POST'])
 @login_required
 def tela_admin():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+        
     return render_template('tela_admin.html')
 
 
-@app.route('/adm/cadastro-user', methods=['GET', 'POST'])
+@app.route('/adm/usuarios', methods=['GET', 'POST'])
 @login_required
-def cadastro_usuario():
+def usuarios():
     if not current_user.is_admin:
         return redirect(url_for('home'))
     
-    form_cadastro_usuario = FormCadastroUsuario(data={'nome_completo': None})
+    form = FormCadastroUsuario(data={'nome_completo': None})
     
-    if form_cadastro_usuario.validate_on_submit():
-        cadastrar_usuario(form_cadastro_usuario)
-        flash('Usuário cadastrado com sucesso!', category='theme-success')
+    if form.validate_on_submit():
+        cadastrar_usuario(form)
         
-        return redirect(url_for('cadastro_usuario'))
+        flash('Usuário cadastrado com sucesso!', category='theme-success')
+        return redirect(url_for('usuarios'))
     
-    return render_template('tela_cadastro.html', form=form_cadastro_usuario)
+    return render_template('tela_usuarios.html', form=form)
 
 
+@app.route('/adm/regioes', methods=['GET', 'POST'])
+@login_required
+def regioes():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    print(request.endpoint)
+    
+    regioes = Regiao.query.all()
+    form_cadastro = RegiaoForm(prefix='cad')
+
+    if form_cadastro.validate_on_submit():
+        cadastrar_regiao(form_cadastro)
+        
+        flash('Região cadastrada com sucesso!', category='theme-success')
+        return redirect(url_for('regioes'))
+    
+    editar_id = request.args.get('editar_id', type=int)
+    form_edicao = None
+    
+    if editar_id:
+        regiao_para_editar = Regiao.query.get_or_404(editar_id)
+        form_edicao = RegiaoForm(prefix='edit', obj=regiao_para_editar)
+    
+    return render_template('tela_rg.html', regioes=regioes, form_cadastro=form_cadastro, form_edicao=form_edicao, editar_id=editar_id)
+
+
+@app.route('/adm/regioes/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_regiao(id):
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+        
+    regiao = Regiao.query.get_or_404(id)
+    form = RegiaoForm(prefix='edit')
+    
+    if form.validate_on_submit():
+        print(form.regiao.data)
+        print(form.area.data)
+        
+        form.populate_obj(regiao)
+        db.session.commit()
+        
+    return redirect(url_for('regioes'))
+
+
+@app.route('/adm/regioes/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_regiao(id):
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    regiao = Regiao.query.get(id)
+    
+    if regiao:
+        db.session.delete(regiao)
+        db.session.commit()
+        flash('Região excluida!', category='theme-success')
+    else:
+        flash('Região não encontrada!', category='theme-info')
+        return redirect(url_for('regioes'))
+    
+    return redirect(url_for('regioes'))
+    
+    
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:

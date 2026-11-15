@@ -5,27 +5,52 @@ from projetoagenda.models import Usuario
 
 
 class FormCadastroUsuario(FlaskForm):
-    nome_completo = StringField('Nome', validators=[
-        DataRequired(),
-        Length(min=10, max=50, message='Coloque seu nome e sobrenome.')]
+    nome_completo = StringField(
+        'Nome', 
+        validators=[
+            DataRequired(),
+            Length(
+                min=10,
+                max=50,
+                message='Coloque seu nome e sobrenome.'
+            )
+        ],
+        filters=[]
     )
-    email = EmailField('E-mail', validators=[
-        DataRequired(),
-        Email(message='Digite um endereço de e-mail válido.')]
+    
+    email = EmailField(
+        'E-mail',
+        validators=[
+            DataRequired(),
+            Email(message='Digite um endereço de e-mail válido.')
+        ],
+        filters=[lambda x: x.strip().lower() if x else None]
     )
-    senha = PasswordField('Senha', validators=[DataRequired(), Length(6, 20)])
+    
+    senha = PasswordField(
+        'Senha',
+        validators=[
+            DataRequired(),
+            Length(6, 20)
+        ],
+        filters=[lambda x: x.strip() if x else None]
+    )
+    
     is_admin = BooleanField('Admin')
+    
     funcao = SelectField(
         'Função',
         choices=[
             ('', 'Selecionar...'),
-            ('Supervisor', 'Supervisor'),
-            ('Gerente', 'Gerente')
+            ('Supervisor Trade', 'Supervisor Trade'),
+            ('Supervisor Comercial', 'Supervisor Comercial'),
+            ('Gerente Comercial', 'Gerente Comercial')
         ],
         validators=[Optional()]
     )
     
     btn_submit = SubmitField('Cadastrar')
+    
     
     def validate_email(self, email):
         usuario = Usuario.query.filter_by(email=email.data).first()
@@ -34,17 +59,47 @@ class FormCadastroUsuario(FlaskForm):
 
 
 class FormLoginUsuario(FlaskForm):
-    email = EmailField('E-mail', validators=[
-        DataRequired(),
-        Email(message='Digite um endereço de e-mail válido.')],
+    email = EmailField(
+        'E-mail',
+        validators=[
+            DataRequired(),
+            Email(message='Digite um endereço de e-mail válido.')
+        ],
+        filters=[lambda x: x.strip().lower() if x else None]
     )
-    senha = PasswordField('Senha', validators=[
-        DataRequired(message="Preencha sua senha."),
-        Length(6, 10, message='Preencha uma senha válida.')
-    ])
+    
+    senha = PasswordField(
+        'Senha', validators=[
+            DataRequired(message="Preencha sua senha."),
+            Length(6, 10, message='Preencha uma senha válida.')
+        ],
+        filters=[lambda x: x.strip() if x else None]
+    )
+    
     lembrar_login = BooleanField('Lembrar-me')
     
     btn_submit = SubmitField('Fazer Login')
+
+
+class RegiaoForm(FlaskForm):
+    regiao = StringField(
+        'Região',
+        validators=[DataRequired()],
+        filters=[lambda x: x.strip().title() if x else None]
+    )
+    
+    area = SelectField(
+        'Área',
+        choices=[
+            ('', 'Selecionar...'),
+            ('MGCL', 'MGCL'),
+            ('MGCO', 'MGCO'),
+            ('INTSP', 'INTSP'),
+        ],
+        validators=[DataRequired()],  
+    )
+    
+    submit = SubmitField('Cadastrar')
     
     
 class LinhaItemForm(Form):
@@ -59,18 +114,31 @@ class LinhaItemForm(Form):
         ],
         validators=[Optional()],
     )
-    descricao = StringField('Descrição', validators=[Optional()])
+    
+    descricao = StringField(
+        'Descrição', 
+        validators=[Optional()],
+        filters=[lambda x: x.strip() if x else None]
+    )
 
 
 class FormAgenda(FlaskForm):
     cidade_manha = FieldList(
-        StringField('Cidade', validators=[DataRequired()]),
+        StringField(
+            'Cidade',
+            validators=[DataRequired()],
+            filters=[lambda x: x.strip().title() if x else None]
+        ),
         min_entries=5,
-        max_entries=5
+        max_entries=5,
     )
     
     cidade_tarde = FieldList(
-        StringField('Cidade', validators=[DataRequired()]),
+        StringField(
+            'Cidade',
+            validators=[DataRequired()],
+            filters=[lambda x: x.strip().title() if x else None]
+        ),
         min_entries=5,
         max_entries=5
     )
