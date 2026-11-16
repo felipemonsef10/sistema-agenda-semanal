@@ -118,7 +118,7 @@ class LinhaItemForm(Form):
     descricao = StringField(
         'Descrição', 
         validators=[Optional()],
-        filters=[lambda x: x.strip() if x else None]
+        filters=[lambda x: x.strip() if x else '']
     )
 
 

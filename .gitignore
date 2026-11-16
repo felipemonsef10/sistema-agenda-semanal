@@ -17,6 +17,7 @@ wheels/
 .env.*
 
 db_manager.py
-projetoagenda/static/agendas_semanais/
 projetoagenda/templates/teste.html
+projetoagenda/static/agendas_semanais/
 testes/
+instance/
