@@ -1,10 +1,27 @@
 from flask_wtf import FlaskForm
 from wtforms import FieldList, Form, FormField, StringField, PasswordField, SubmitField, FileField, DateField, EmailField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Optional
-from projetoagenda.models import Usuario
+from projetoagenda import app
+from projetoagenda.models import Usuario, Regiao
+
+# Função auxiliar: converte para int se houver valor, ou retorna None se for vazio
+def coerce_int_ou_none(valor):
+    if valor in (None, '', 'None'):
+        return None
+    # elif type(valor) == str:
+    #     return str(valor)
+    return int(valor)
 
 
-class FormCadastroUsuario(FlaskForm):
+def coerce_str_ou_none(valor):
+    if valor in (None, '', 'None'):
+        return None
+    # elif type(valor) == str:
+    #     return str(valor)
+    return str(valor)
+
+
+class UsuarioForm(FlaskForm):
     nome_completo = StringField(
         'Nome', 
         validators=[
@@ -15,7 +32,7 @@ class FormCadastroUsuario(FlaskForm):
                 message='Coloque seu nome e sobrenome.'
             )
         ],
-        filters=[]
+        filters=[lambda x: x.title() if x else None]
     )
     
     email = EmailField(
@@ -36,28 +53,34 @@ class FormCadastroUsuario(FlaskForm):
         filters=[lambda x: x.strip() if x else None]
     )
     
-    is_admin = BooleanField('Admin')
-    
-    funcao = SelectField(
-        'Função',
-        choices=[
-            ('', 'Selecionar...'),
-            ('Supervisor Trade', 'Supervisor Trade'),
-            ('Supervisor Comercial', 'Supervisor Comercial'),
-            ('Gerente Comercial', 'Gerente Comercial')
-        ],
+    is_admin = BooleanField(
+        'Admin',
         validators=[Optional()]
     )
     
-    btn_submit = SubmitField('Cadastrar')
+    funcao = SelectField(
+        'Função',
+        choices=[],
+        coerce=coerce_str_ou_none,
+        validators=[Optional()]
+    )
+    
+    regiao = SelectField(
+        'Região',
+        choices=[],
+        coerce=coerce_int_ou_none,
+        validators=[Optional()]
+    )
+    
+    submit = SubmitField('Cadastrar')
     
     
     def validate_email(self, email):
         usuario = Usuario.query.filter_by(email=email.data).first()
         if usuario:
             raise ValidationError('E-mail já cadastrado!')
-
-
+            
+        
 class FormLoginUsuario(FlaskForm):
     email = EmailField(
         'E-mail',

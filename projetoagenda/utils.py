@@ -9,6 +9,10 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
+import shutil
+import os
+from pathlib import Path
+
 # --------------------------------------------------------------------------- #
 # Constantes visuais (extraídas do PDF modelo)
 # --------------------------------------------------------------------------- #
@@ -494,6 +498,15 @@ def calcular_dias_semana():
     return dias_semana, intervalo
 
 
+def criar_caminho_pdfs(caminho_pdfs: Path, semana_resultado: str, caminhos_pdf_semana: Path):
+    semana_resultado_ = semana_resultado.replace('/', '_')
+    
+    if (semana_resultado_ not in os.listdir(caminho_pdfs)) and (len(os.listdir(caminho_pdfs)) > 0):
+        shutil.rmtree(caminho_pdfs / os.listdir(caminho_pdfs)[0])
+        
+    caminhos_pdf_semana.mkdir(exist_ok=True)
+        
+
 if __name__ == '__main__':
     dados = {
         'data': ['16/11/2026', '17/11/2026', '18/11/2026', '19/11/2026', '20/11/2026'],
@@ -508,4 +521,3 @@ if __name__ == '__main__':
 
     gerar_agenda_pdf(dados, r"C:\Users\User\Downloads\agenda_exemplo.pdf", nome_supervisor="TESTE")
     print("PDF gerado: agenda_exemplo.pdf")
-    # print(calcular_dias_semana())

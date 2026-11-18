@@ -1,8 +1,8 @@
 from projetoagenda import app, db, bcrypt
-from projetoagenda.forms import FormAgenda, FormCadastroUsuario, FormLoginUsuario, RegiaoForm
+from projetoagenda.forms import FormAgenda, UsuarioForm, FormLoginUsuario, RegiaoForm
 from projetoagenda.models import Agenda, Usuario, Regiao
-from projetoagenda.utils import calcular_dias_semana, gerar_agenda_pdf
-from projetoagenda.caminhos import CAMINHO_PDFS
+from projetoagenda.utils import gerar_agenda_pdf, criar_caminho_pdfs
+from projetoagenda import CAMINHO_PDFS, dias_semana, intervalo_semana
 
 from flask import render_template, redirect, flash, request, url_for, send_file
 from flask_login import login_user, logout_user, current_user, login_required
@@ -10,9 +10,6 @@ from sqlalchemy import update
 
 from secrets import token_hex
 from datetime import date
-
-
-dias_semana, intervalo_semana = calcular_dias_semana()
 
 
 def carregar_dados_agenda(id_usuario, intervalo_semana):
@@ -153,12 +150,13 @@ def atualizar_agenda(dias_semana: dict, form: FormAgenda, agenda_atual):
         count += 4
         
 
-def cadastrar_usuario(form: FormCadastroUsuario):
+def cadastrar_usuario(form: UsuarioForm):
     usuario = Usuario(
         nome_completo = form.nome_completo.data,
         email = form.email.data,
         senha = bcrypt.generate_password_hash(form.senha.data).decode('utf-8'),
         funcao = form.funcao.data,
+        regiao_id = form.regiao.data,
         is_admin = form.is_admin.data,
     )
     
@@ -210,7 +208,9 @@ def baixar_agenda():
     agenda = buscar_agenda(current_user.id, intervalo_semana=intervalo_semana)
     if agenda:
         nome_arquivo_pdf = f"{current_user.nome_completo.replace(' ', '_')}_{intervalo_semana.replace('/', '_')}.pdf"
-        caminho_agenda_pdf = str(CAMINHO_PDFS / nome_arquivo_pdf)
+        caminhos_pdf_semana = CAMINHO_PDFS / intervalo_semana.replace('/', '_')
+        caminho_agenda_pdf = str(caminhos_pdf_semana / nome_arquivo_pdf)
+        criar_caminho_pdfs(CAMINHO_PDFS, intervalo_semana, caminhos_pdf_semana)
         
         gerar_agenda_pdf(agenda, caminho_agenda_pdf, current_user.nome_completo)
         
@@ -236,15 +236,69 @@ def usuarios():
     if not current_user.is_admin:
         return redirect(url_for('home'))
     
-    form = FormCadastroUsuario(data={'nome_completo': None})
+    usuarios = Usuario.query.all()
+    regioes = Regiao.query.order_by(Regiao.regiao).all()
     
-    if form.validate_on_submit():
-        cadastrar_usuario(form)
+    # form cadastro
+    form_cadastro = UsuarioForm(prefix='cad')
+    form_cadastro.funcao.choices = list([('', '')] + [('Supervisor Trade', 'Supervisor Trade'), ('Supervisor Comercial', 'Supervisor Comercial'), ('Gerente Comercial', 'Gerente Comercial')])
+    form_cadastro.regiao.choices = list([('', '')] + [(r.id, r.regiao) for r in regioes])
+    
+    if form_cadastro.validate_on_submit():
+        cadastrar_usuario(form_cadastro)
         
         flash('Usuário cadastrado com sucesso!', category='theme-success')
         return redirect(url_for('usuarios'))
+    else:
+        print('Inválido!')
+        print(form_cadastro.errors)
     
-    return render_template('tela_usuarios.html', form=form)
+    # form editar
+    editar_id = request.args.get('editar_id', type=int)
+    form_edicao = None
+    
+    if editar_id:
+        usuario_para_editar = Usuario.query.get_or_404(editar_id)
+        form_edicao = UsuarioForm(prefix='edit', obj=usuario_para_editar)
+        print(form_edicao.senha.data)
+
+    return render_template('tela_usuarios.html', usuarios=usuarios, form_cadastro=form_cadastro, form_edicao=form_edicao, editar_id=editar_id)
+
+
+@app.route('/adm/usuarios/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_usuario(id):
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+        
+    usuario = Usuario.query.get_or_404(id)
+    form = UsuarioForm(prefix='edit')
+    
+    if form.validate_on_submit(): 
+        print(form.nome_completo)
+        # form.populate_obj(usuario)
+        # db.session.commit()
+        
+    return redirect(url_for('usuarios'))
+
+
+@app.route('/adm/usuarios/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_usuario(id):
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    usuario = Usuario.query.get(id)
+    
+    if Usuario:
+        db.session.delete(usuario)
+        db.session.commit()
+        flash('Usuário excluído!', category='theme-success')
+    else:
+        flash('Usuário não encontrado!', category='theme-info')
+        return redirect(url_for('usuarios'))
+    
+    return redirect(url_for('usuarios'))
 
 
 @app.route('/adm/regioes', methods=['GET', 'POST'])
@@ -252,8 +306,6 @@ def usuarios():
 def regioes():
     if not current_user.is_admin:
         return redirect(url_for('home'))
-    
-    print(request.endpoint)
     
     regioes = Regiao.query.all()
     form_cadastro = RegiaoForm(prefix='cad')
@@ -284,9 +336,6 @@ def editar_regiao(id):
     form = RegiaoForm(prefix='edit')
     
     if form.validate_on_submit():
-        print(form.regiao.data)
-        print(form.area.data)
-        
         form.populate_obj(regiao)
         db.session.commit()
         

@@ -4,71 +4,144 @@
 
 <div class="container">
     <form action="" method="post">
-        {{ form.csrf_token() }}
+        {{ form_cadastro.csrf_token() }}
 
         <legend>Cadastro de Usuários</legend>
 
         <div class="mb-3">
-            {{ form.nome_completo.label(class="form-label") }}
+            {{ form_cadastro.nome_completo.label(class="form-label") }}
 
-            {% if form.nome_completo.errors %}
-                {{ form.nome_completo(class="form-control is-invalid") }}
+            {% if form_cadastro.nome_completo.errors %}
+                {{ form_cadastro.nome_completo(class="form-control is-invalid") }}
 
                 <div class="invalid-feedback">
-                    {% for erro in form.nome_completo.errors %}
+                    {% for erro in form_cadastro.nome_completo.errors %}
                         {{ erro }}
                     {% endfor %}
                 </div>
             {% else %}
-                {{ form.nome_completo(class="form-control") }}
+                {{ form_cadastro.nome_completo(class="form-control") }}
             {% endif %}
         </div>
 
         <div class="mb-3">
-            {{ form.email.label(class="form-label") }}
+            {{ form_cadastro.email.label(class="form-label") }}
             
-            {% if form.email.errors %}
-                {{ form.email(class="form-control is-invalid") }}
+            {% if form_cadastro.email.errors %}
+                {{ form_cadastro.email(class="form-control is-invalid") }}
 
                 <div class="invalid-feedback">
-                    {% for erro in form.email.errors %}
+                    {% for erro in form_cadastro.email.errors %}
                         {{ erro }}
                     {% endfor %}
                 </div>
             {% else %}
-                {{ form.email(class="form-control") }}
+                {{ form_cadastro.email(class="form-control") }}
             {% endif %}
         </div>
         
         <div class="mb-3">
-            {{ form.senha.label(class="form-label") }}
-            {{ form.senha(class="form-control") }}
+            {{ form_cadastro.senha.label(class="form-label") }}
+            {{ form_cadastro.senha(class="form-control") }}
         </div>
 
         <div class="mb-3">
-            {{ form.funcao.label(class="form-label") }}
-            {{ form.funcao(class="form-control") }}
+            {{ form_cadastro.funcao.label(class="form-label") }}
+            {{ form_cadastro.funcao(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_cadastro.regiao.label(class="form-label") }}
+            {{ form_cadastro.regiao(class="form-control") }}
         </div>
 
         <div class="mb-3 form-field">
-            {{ form.is_admin.label(class="form-label")   }}
+            {{ form_cadastro.is_admin.label(class="form-label")   }}
 
-            {% if form.is_admin.errors %}
-                {{ form.is_admin }}
+            {% if form_cadastro.is_admin.errors %}
+                {{ form_cadastro.is_admin }}
                 <div class="invalid-feedback">
-                    {% for erro in form.is_admin.errors %}
+                    {% for erro in form_cadastro.is_admin.errors %}
                         {{ erro }}
                     {% endfor %}
                 </div>
             {% else %}
-                {{ form.is_admin(class="check") }}
+                {{ form_cadastro.is_admin(class="check") }}
             {% endif %}
         </div>
 
-        {{ form.btn_submit(class="btn-solid theme-primary") }}
+        {{ form_cadastro.submit(class="btn-solid theme-primary") }}
 
     </form>
 
+<!-- Form invisível que controla a edição da linha (evita <form> dentro de <tr>) -->
+    {% if form_edicao %}
+        <form id="form-edicao" method="POST" action="{{ url_for('editar_usuario', id=editar_id) }}">
+            {{ form_edicao.hidden_tag() }}
+        </form>
+    {% endif %}
+
+
+<!-- 2. TABELA DE LISTAGEM E EDIÇÃO -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Senha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+                <tr>                
+                    {% if editar_id == usuario.id %}
+                        <!-- MODO EDIÇÃO: Inputs vinculados ao form-edicao -->
+                        <td>{{ form_edicao.nome_completo(form="form-edicao", class="form-control") }}</td>
+                        <td>{{ form_edicao.email(form="form-edicao", class="form-control") }}</td>
+                        <td>
+                            <div class="row">
+                                <div class="col-auto">
+                                    {{ form_edicao.senha(form="form-edicao", class="form-control") }}
+                                </div>
+                                <div class="col-auto">
+                                    {{ form_edicao.submit(form="form-edicao", value="Salvar", class="btn-solid theme-primary") }}
+                                    <a href="{{ url_for('usuarios') }}" class="btn-solid theme-primary">Cancelar</a>
+                                </div>
+                            </div>
+                        </td>
+                    {% else %}
+                        <!-- MODO VISUALIZAÇÃO -->
+                        <td>
+                            <input type="text" class="form-control" value="{{ usuario.nome_completo }}" disabled>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" value="{{ usuario.email }}" disabled>
+                        </td>
+                        <td>
+                            <div class="row g-3 align-items-center">
+                                <div class="col-auto">
+                                    <input type="password" class="form-control" value="{{ usuario.senha[0:8] }}" disabled>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{{ url_for('usuarios', editar_id=usuario.id) }}" class="btn-solid theme-primary">Editar</a>
+                                </div>
+                                <div class="col-auto">
+                                    <!-- Botão Excluir (Usa <form> porque a rota exige POST) -->
+                                    <form action="{{ url_for('excluir_usuario', id=usuario.id) }}" method="POST" style="margin: 0;">
+                                        <button type="submit" class="btn-solid theme-danger" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table
 </div>
 
 {% endblock %}
