@@ -1,1 +1,27 @@
 {% extends 'base.html' %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2>Supervisores Com Agenda: {{ context['supervisores_com_agenda'][1] }}</h2>
+            <hr>
+            {% if context['supervisores_com_agenda'][0] %}
+                {% for supervisor in context['supervisores_com_agenda'][0] %}
+                    {{ supervisor.nome_completo }} <br>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="col">
+            <h2>Supervisores Sem Agenda: {{ context['supervisores_sem_agenda'][1] }}</h2>
+            <hr>
+            {% if context['supervisores_sem_agenda'][0] %}
+                {% for supervisor in context['supervisores_sem_agenda'][0] %}
+                    {{ supervisor.nome_completo }} <br>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

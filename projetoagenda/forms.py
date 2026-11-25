@@ -53,16 +53,11 @@ class UsuarioForm(FlaskForm):
         filters=[lambda x: x.strip() if x else None]
     )
     
-    is_admin = BooleanField(
-        'Admin',
-        validators=[Optional()]
-    )
-    
     funcao = SelectField(
         'Função',
         choices=[],
         coerce=coerce_str_ou_none,
-        validators=[Optional()]
+        validators=[DataRequired()]
     )
     
     regiao = SelectField(
@@ -79,7 +74,56 @@ class UsuarioForm(FlaskForm):
         usuario = Usuario.query.filter_by(email=email.data).first()
         if usuario:
             raise ValidationError('E-mail já cadastrado!')
-            
+
+
+class EditarUsuarioForm(FlaskForm):
+    nome_completo = StringField(
+        'Nome', 
+        validators=[
+            DataRequired(),
+            Length(
+                min=10,
+                max=50,
+                message='Coloque seu nome e sobrenome.'
+            )
+        ],
+        filters=[lambda x: x.title() if x else None]
+    )
+    
+    email = EmailField(
+        'E-mail',
+        validators=[
+            DataRequired(),
+            Email(message='Digite um endereço de e-mail válido.')
+        ],
+        filters=[lambda x: x.strip().lower() if x else None]
+    )
+    
+    senha = PasswordField(
+        'Senha',
+        validators=[
+            Optional(),
+            Length(6, 20)
+        ],
+        filters=[lambda x: x.strip() if x else None]
+    )
+    
+    funcao = SelectField(
+        'Função',
+        choices=[],
+        coerce=coerce_str_ou_none,
+        validators=[DataRequired()]
+    )
+    
+    regiao_id = SelectField(
+        'Região',
+        choices=[],
+        coerce=coerce_int_ou_none,
+        validators=[Optional()]
+    )
+    
+    submit = SubmitField('Editar')
+
         
 class FormLoginUsuario(FlaskForm):
     email = EmailField(

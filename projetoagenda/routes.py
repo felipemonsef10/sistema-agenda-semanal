@@ -1,5 +1,5 @@
 from projetoagenda import app, db, bcrypt
-from projetoagenda.forms import FormAgenda, UsuarioForm, FormLoginUsuario, RegiaoForm
+from projetoagenda.forms import FormAgenda, UsuarioForm, FormLoginUsuario, EditarUsuarioForm, RegiaoForm
 from projetoagenda.models import Agenda, Usuario, Regiao
 from projetoagenda.utils import gerar_agenda_pdf, criar_caminho_pdfs
 from projetoagenda import CAMINHO_PDFS, dias_semana, intervalo_semana
@@ -10,9 +10,10 @@ from sqlalchemy import update
 
 from secrets import token_hex
 from datetime import date
+import shutil
 
 
-def carregar_dados_agenda(id_usuario, intervalo_semana):
+def carregar_dados_agenda(id_usuario: int, intervalo_semana: str):
     dados_iniciais = {
         'cidade_manha': [],
         'cidade_tarde': [],
@@ -38,6 +39,19 @@ def carregar_dados_agenda(id_usuario, intervalo_semana):
                 })
     
     return dados_iniciais, agenda_atual
+
+
+def buscar_supervisores_com_agenda(intervalo_semana: str):
+    stmt = (
+        db.select(Usuario)
+        .join(Agenda)
+        .where(Agenda.intervalo_semana == intervalo_semana)
+        .distinct()
+    )
+
+    usuarios = db.session.scalars(stmt).all()
+    
+    return usuarios
 
 
 def buscar_agenda(id_usuario: int, intervalo_semana: str):
@@ -151,13 +165,14 @@ def atualizar_agenda(dias_semana: dict, form: FormAgenda, agenda_atual):
         
 
 def cadastrar_usuario(form: UsuarioForm):
+    is_admin = form.funcao.data == 'Admin'
     usuario = Usuario(
-        nome_completo = form.nome_completo.data,
-        email = form.email.data,
-        senha = bcrypt.generate_password_hash(form.senha.data).decode('utf-8'),
-        funcao = form.funcao.data,
-        regiao_id = form.regiao.data,
-        is_admin = form.is_admin.data,
+        nome_completo = form.nome_completo.data, # type: ignore
+        email = form.email.data, # type: ignore
+        senha = bcrypt.generate_password_hash(form.senha.data).decode('utf-8'), # type: ignore
+        funcao = form.funcao.data, # type: ignore
+        regiao_id = form.regiao.data, # type: ignore
+        is_admin = is_admin, # type: ignore
     )
     
     with app.app_context():
@@ -167,8 +182,8 @@ def cadastrar_usuario(form: UsuarioForm):
 
 def cadastrar_regiao(form: RegiaoForm):
     regiao = Regiao(
-        regiao = form.regiao.data,
-        area = form.area.data
+        regiao = form.regiao.data, # type: ignore
+        area = form.area.data # type: ignore
     )
     
     with app.app_context():
@@ -217,7 +232,25 @@ def baixar_agenda():
         flash('Agenda baixada com sucesso!', 'theme-success')
         return send_file(caminho_agenda_pdf, as_attachment=True, download_name=nome_arquivo_pdf)
     
-    flash('Agenda não preenchida!', 'theme-info')
+    flash('Agenda não preenchida!', 'theme-warning')
+    return '', 204
+
+
+@app.route('/adm/agendas/baixar', methods=['GET', 'POST'])
+@login_required
+def baixar_agendas():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    caminho_agendas = CAMINHO_PDFS / intervalo_semana.replace('/', '_')
+    if not caminho_agendas.exists():
+        flash('Nenhuma agenda preenchida!', 'theme-warning')
+    else:
+        nome_arquivo_zip = f"agendas_semanais_{intervalo_semana.replace('/', '_')}.zip"
+        caminho_arquivo_zip = CAMINHO_PDFS / nome_arquivo_zip
+        shutil.make_archive(str(caminho_arquivo_zip).removesuffix('.zip'), "zip", str(caminho_agendas))
+        return send_file(caminho_arquivo_zip, as_attachment=True, download_name=str(nome_arquivo_zip))
+
     return '', 204
 
 
@@ -226,8 +259,18 @@ def baixar_agenda():
 def tela_admin():
     if not current_user.is_admin:
         return redirect(url_for('home'))
-        
-    return render_template('tela_admin.html')
+    
+    supervisores = Usuario.query.filter_by(is_admin=False).all()
+    supervisores_com_agenda = buscar_supervisores_com_agenda(intervalo_semana)
+    supervisores_sem_agenda = set(supervisores)- set(supervisores_com_agenda)
+    
+    context = {
+        'supervisores_com_agenda': (supervisores_com_agenda, len(supervisores_com_agenda)),
+        'supervisores_sem_agenda': (supervisores_sem_agenda, len(supervisores_sem_agenda))
+    }
+    
+
+    return render_template('tela_admin.html', context=context)
 
 
 @app.route('/adm/usuarios', methods=['GET', 'POST'])
@@ -241,7 +284,7 @@ def usuarios():
     
     # form cadastro
     form_cadastro = UsuarioForm(prefix='cad')
-    form_cadastro.funcao.choices = list([('', '')] + [('Supervisor Trade', 'Supervisor Trade'), ('Supervisor Comercial', 'Supervisor Comercial'), ('Gerente Comercial', 'Gerente Comercial')])
+    form_cadastro.funcao.choices = list([('', '')] + [('Admin', 'Admin'), ('Supervisor Trade', 'Supervisor Trade'), ('Supervisor Comercial', 'Supervisor Comercial'), ('Gerente Comercial', 'Gerente Comercial')])
     form_cadastro.regiao.choices = list([('', '')] + [(r.id, r.regiao) for r in regioes])
     
     if form_cadastro.validate_on_submit():
@@ -249,9 +292,6 @@ def usuarios():
         
         flash('Usuário cadastrado com sucesso!', category='theme-success')
         return redirect(url_for('usuarios'))
-    else:
-        print('Inválido!')
-        print(form_cadastro.errors)
     
     # form editar
     editar_id = request.args.get('editar_id', type=int)
@@ -259,8 +299,9 @@ def usuarios():
     
     if editar_id:
         usuario_para_editar = Usuario.query.get_or_404(editar_id)
-        form_edicao = UsuarioForm(prefix='edit', obj=usuario_para_editar)
-        print(form_edicao.senha.data)
+        form_edicao = EditarUsuarioForm(obj=usuario_para_editar)
+        form_edicao.funcao.choices = list([('', '')] + [('Admin', 'Admin'), ('Supervisor Trade', 'Supervisor Trade'), ('Supervisor Comercial', 'Supervisor Comercial'), ('Gerente Comercial', 'Gerente Comercial')])
+        form_edicao.regiao_id.choices = list([('', '')] + [(r.id, r.regiao) for r in regioes])
 
     return render_template('tela_usuarios.html', usuarios=usuarios, form_cadastro=form_cadastro, form_edicao=form_edicao, editar_id=editar_id)
 
@@ -272,12 +313,23 @@ def editar_usuario(id):
         return redirect(url_for('home'))
         
     usuario = Usuario.query.get_or_404(id)
-    form = UsuarioForm(prefix='edit')
+    regioes = Regiao.query.order_by(Regiao.regiao).all()
+    form = EditarUsuarioForm()
+    form.funcao.choices = list([('', '')] + [('Admin', 'Admin'), ('Supervisor Trade', 'Supervisor Trade'), ('Supervisor Comercial', 'Supervisor Comercial'), ('Gerente Comercial', 'Gerente Comercial')])
+    form.regiao_id.choices = list([('', '')] + [(r.id, r.regiao) for r in regioes])
     
-    if form.validate_on_submit(): 
-        print(form.nome_completo)
-        # form.populate_obj(usuario)
-        # db.session.commit()
+    if form.validate_on_submit():
+        if not form.senha.data:
+            form.senha.data = usuario.senha
+        elif form.senha.data != usuario.senha:
+            form.senha.data = bcrypt.generate_password_hash(form.senha.data).decode('utf-8')    
+        form.populate_obj(usuario)
+        
+        usuario.is_admin = form.funcao.data == 'Admin'
+        
+        db.session.commit()
+    else:
+        print(form.errors)
         
     return redirect(url_for('usuarios'))
 

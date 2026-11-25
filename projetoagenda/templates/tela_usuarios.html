@@ -55,21 +55,6 @@
             {{ form_cadastro.regiao(class="form-control") }}
         </div>
 
-        <div class="mb-3 form-field">
-            {{ form_cadastro.is_admin.label(class="form-label")   }}
-
-            {% if form_cadastro.is_admin.errors %}
-                {{ form_cadastro.is_admin }}
-                <div class="invalid-feedback">
-                    {% for erro in form_cadastro.is_admin.errors %}
-                        {{ erro }}
-                    {% endfor %}
-                </div>
-            {% else %}
-                {{ form_cadastro.is_admin(class="check") }}
-            {% endif %}
-        </div>
-
         {{ form_cadastro.submit(class="btn-solid theme-primary") }}
 
     </form>
@@ -88,6 +73,8 @@
             <tr>
                 <th>Nome</th>
                 <th>Email</th>
+                <th>Função</th>
+                <th>Região</th>
                 <th>Senha</th>
             </tr>
         </thead>
@@ -98,6 +85,8 @@
                         <!-- MODO EDIÇÃO: Inputs vinculados ao form-edicao -->
                         <td>{{ form_edicao.nome_completo(form="form-edicao", class="form-control") }}</td>
                         <td>{{ form_edicao.email(form="form-edicao", class="form-control") }}</td>
+                        <td>{{ form_edicao.funcao(form="form-edicao", class="form-control") }}</td>
+                        <td>{{ form_edicao.regiao_id(form="form-edicao", class="form-control") }}</td>
                         <td>
                             <div class="row">
                                 <div class="col-auto">
@@ -116,6 +105,13 @@
                         </td>
                         <td>
                             <input type="text" class="form-control" value="{{ usuario.email }}" disabled>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" value="{{ usuario.funcao }}" disabled>
+                        </td>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" value="{{ usuario.regiao.regiao }}" disabled>
                         </td>
                         <td>
                             <div class="row g-3 align-items-center">

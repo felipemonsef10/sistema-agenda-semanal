@@ -12,9 +12,9 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'regioes' %}active{% endif %}" href="{{ url_for('regioes') }}">Regiões</a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-                    </li>
+                    </li> -->
                 </ul>
             {% endif %}
         </div>
@@ -23,14 +23,25 @@
                 {% if not current_user.is_admin %}
                     <li class="nav-item m-2">
                         <a href="{{ url_for('baixar_agenda') }}" 
-                        class="nav-link active"
-                        onclick="setTimeout(function(){ window.location.href = '/home'; }, 1000);">
-                        Baixar Arquivo
+                            class="nav-link active"
+                            onclick="setTimeout(function(){ window.location.href = '/home'; }, 1000);">
+                            Baixar Arquivo
                         </a>
                     </li>
                 {% endif %}
+                
+                {% if current_user.is_admin and request.endpoint == 'tela_admin' %}
+                    <li class="nav-item m-2">
+                        <a href="{{ url_for('baixar_agendas') }}" 
+                            class="nav-link active"
+                            onclick="setTimeout(function(){ window.location.href = '/home'; }, 1000);">
+                            Baixar Agendas
+                        </a>
+                    </li>
+                {% endif %}
+                
                 <li class="nav-item m-2">
-                    <a class="nav-link active" href="{{ url_for('logout') }}" style="background-color:lightskyblue;">Sair</a>
+                    <a class="nav-link active" href="{{ url_for('logout') }}" style="background-color:rgb(202, 35, 35);">Sair</a>
                 </li>
             </ul>
         </div>

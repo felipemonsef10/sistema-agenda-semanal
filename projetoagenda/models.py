@@ -12,14 +12,17 @@ class Usuario(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     nome_completo = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(50), nullable=False, unique=True)
-    senha = db.Column(db.String(50), nullable=False)
+    senha = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False)
     
-    funcao = db.Column(db.String(50), nullable=True)
+    funcao = db.Column(db.String(50), nullable=False)
+    
     regiao_id = db.Column(
         db.Integer, db.ForeignKey('regioes.id'), nullable=True
     )
-    agendas = db.relationship('Agenda', backref='usuario', lazy=True)
+    regiao = db.relationship('Regiao', back_populates='supervisores')
+    
+    agendas = db.relationship('Agenda', back_populates='usuario', lazy=True, cascade="all, delete-orphan")
 
 
 class Regiao(db.Model):
@@ -29,7 +32,7 @@ class Regiao(db.Model):
     regiao = db.Column(db.String(60), nullable=False)
     area = db.Column(db.String(50), nullable=False)
     
-    usuario = db.relationship('Usuario', backref='regiao', lazy=True)
+    supervisores = db.relationship('Usuario', back_populates='regiao', lazy=True)
     
 
 class Agenda(db.Model):
@@ -46,3 +49,4 @@ class Agenda(db.Model):
     intervalo_semana = db.Column(db.String, nullable=False)
     
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    usuario = db.relationship('Usuario', back_populates='agendas')
